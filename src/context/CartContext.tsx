@@ -40,7 +40,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromCart = (name: string) => {
-    setCart((prev) => prev.filter((i) => i.name !== name));
+    setCart((prev) => {
+      const existing = prev.find((i) => i.name === name);
+      if (existing && existing.quantity > 1) {
+        return prev.map((i) =>
+          i.name === name ? { ...i, quantity: i.quantity - 1 } : i
+        );
+      }
+      return prev.filter((i) => i.name !== name);
+    });
   };
 
   const clearCart = () => setCart([]);

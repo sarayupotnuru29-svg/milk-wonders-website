@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingCart, Menu, X } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
+import CartSheet from "@/components/CartSheet";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -13,7 +13,6 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const { totalItems, sendToWhatsApp } = useCart();
   const location = useLocation();
 
   return (
@@ -40,18 +39,7 @@ const Navbar = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={sendToWhatsApp}
-            className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
-            aria-label="Cart"
-          >
-            <ShoppingCart className="h-5 w-5 text-primary" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 gradient-green text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                {totalItems}
-              </span>
-            )}
-          </button>
+          <CartSheet />
 
           <button className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label="Menu">
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

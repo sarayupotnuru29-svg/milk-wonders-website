@@ -1,6 +1,8 @@
 import aboutFarm from "@/assets/about-farm.png";
-import milkPour from "@/assets/milk-pour.png";
-import milkBottles from "@/assets/milk-bottles.jpeg";
+import ourStory from "@/assets/our-story.png";
+import galleryBottles from "@/assets/gallery-bottles.png";
+import galleryCows from "@/assets/gallery-cows.png";
+import galleryProducts from "@/assets/gallery-products.png";
 
 const About = () => {
   return (
@@ -27,7 +29,7 @@ const About = () => {
               </p>
             </div>
             <div className="rounded-xl overflow-hidden shadow-lg">
-              <img src={milkPour} alt="Fresh milk" className="w-full h-80 object-cover" />
+              <img src={ourStory} alt="Our dairy farming story" className="w-full h-80 object-cover" />
             </div>
           </div>
         </div>
@@ -56,7 +58,7 @@ const About = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <h2 className="text-3xl font-heading font-bold text-foreground text-center mb-10">From Our Farm</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[aboutFarm, milkBottles, milkPour].map((img, i) => (
+            {[galleryBottles, galleryCows, galleryProducts].map((img, i) => (
               <div key={i} className="rounded-xl overflow-hidden shadow-md aspect-video">
                 <img src={img} alt="Farm gallery" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </div>

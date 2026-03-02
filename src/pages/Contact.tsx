@@ -1,12 +1,34 @@
 import { useState } from "react";
 import { Phone, Mail, MapPin } from "lucide-react";
 
+const productOptions = [
+  "Natural High Protein Buffalo Milk 500ML",
+  "Natural High Protein Buffalo Milk 1000ML",
+  "High Protein Cow Milk 500ML",
+  "High Protein Cow Milk 1000ML",
+  "Cow Milk 500ML",
+  "Cow Milk 1000ML",
+  "Buffalo Milk 500ML",
+  "Buffalo Milk 1000ML",
+  "Taaza Paneer 250gm",
+  "Taaza Paneer 500gm",
+  "Taaza Paneer 1kg",
+  "Bilona Buffalo Ghee 500ML",
+  "Bilona Buffalo Ghee 1000ML",
+  "Bilona Cow Ghee 500ML",
+  "Bilona Cow Ghee 1000ML",
+  "Farm Fresh Curd 1kg",
+  "Farm Fresh Curd 500ML",
+  "Farm Fresh Curd 250ML",
+];
+
 const Contact = () => {
-  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", phone: "", product: "", message: "" });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `Hello MilkWonders,\n\nName: ${form.name}\nPhone: ${form.phone}\nMessage: ${form.message}`;
+    const productLine = form.product ? `\nProduct Interest: ${form.product}` : "";
+    const msg = `Hello MilkWonders,\n\nName: ${form.name}\nPhone: ${form.phone}${productLine}\nMessage: ${form.message}`;
     window.open(`https://wa.me/917396304599?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -89,6 +111,19 @@ const Contact = () => {
                     className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder="Your phone number"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Product Interest</label>
+                  <select
+                    value={form.product}
+                    onChange={(e) => setForm({ ...form, product: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select a product (optional)</option>
+                    {productOptions.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Message</label>
