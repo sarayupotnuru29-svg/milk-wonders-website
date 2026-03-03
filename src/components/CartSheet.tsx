@@ -4,14 +4,13 @@
 // import { useCart } from "@/context/CartContext";
 
 // const CartSheet = () => {
-//   // Accessing context functions
 //   const { cart, totalItems, totalPrice, sendToWhatsApp, removeFromCart, addToCart } = useCart();
   
-//   // State for delivery details
 //   const [addressForm, setAddressForm] = useState({
 //     name: "",
 //     phone: "",
-//     address: ""
+//     address: "",
+//     coords: null as { lat: number; lng: number } | null 
 //   });
 
 //   const [isLocating, setIsLocating] = useState(false);
@@ -21,7 +20,6 @@
 //     setAddressForm(prev => ({ ...prev, [name]: value }));
 //   };
 
-//   // Function to handle Geolocation
 //   const handleGetLocation = () => {
 //     if (!navigator.geolocation) {
 //       alert("Geolocation is not supported by your browser");
@@ -34,14 +32,18 @@
 //       async (position) => {
 //         const { latitude, longitude } = position.coords;
         
+//         // Store coordinates for the visual map and WhatsApp link
+//         setAddressForm(prev => ({
+//           ...prev,
+//           coords: { lat: latitude, lng: longitude }
+//         }));
+
 //         try {
-//           // Fetching address from coordinates using OpenStreetMap's Nominatim API
 //           const response = await fetch(
 //             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
 //           );
 //           const data = await response.json();
           
-//           // Update the state with the fetched address
 //           const fullAddress = data.display_name || `Lat: ${latitude}, Lon: ${longitude}`;
 //           setAddressForm(prev => ({
 //             ...prev,
@@ -59,29 +61,20 @@
 //       },
 //       (error) => {
 //         setIsLocating(false);
-//         if (error.code === 1) {
-//           alert("Location permission denied. Please allow location access in your browser settings.");
-//         } else {
-//           alert("Unable to retrieve location. Please type your address manually.");
-//         }
+//         alert("Unable to retrieve location. Please type your address manually.");
 //       },
 //       { enableHighAccuracy: true, timeout: 5000 }
 //     );
 //   };
 
 //   const handleOrder = () => {
-//     // Validation check
 //     if (!addressForm.name.trim() || !addressForm.phone.trim() || !addressForm.address.trim()) {
 //       alert("Please fill in all delivery details before ordering.");
 //       return;
 //     }
-
-//     // UPDATED LOGIC: Pass the addressForm object to the context function
-//     // This ensures Name, Phone, and Address are sent to WhatsApp
 //     sendToWhatsApp(addressForm);
 //   };
 
-//   // Form validation for the button state
 //   const isFormValid = addressForm.name.trim().length > 0 && 
 //                       addressForm.phone.trim().length > 0 && 
 //                       addressForm.address.trim().length > 0;
@@ -89,10 +82,7 @@
 //   return (
 //     <Sheet>
 //       <SheetTrigger asChild>
-//         <button
-//           className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
-//           aria-label="Cart"
-//         >
+//         <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors">
 //           <ShoppingCart className="h-5 w-5 text-primary" />
 //           {totalItems > 0 && (
 //             <span className="absolute -top-1 -right-1 gradient-green text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
@@ -116,130 +106,80 @@
 //         ) : (
 //           <>
 //             <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
-//               {/* Cart Items List */}
 //               <div className="space-y-3">
 //                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Items</h3>
 //                 {cart.map((item) => (
-//                   <div
-//                     key={item.name}
-//                     className="flex items-center gap-3 bg-secondary rounded-lg p-3"
-//                   >
+//                   <div key={item.name} className="flex items-center gap-3 bg-secondary rounded-lg p-3">
 //                     <div className="flex-1 min-w-0">
 //                       <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
 //                       <p className="text-sm text-primary font-semibold">₹{item.price} each</p>
 //                     </div>
 //                     <div className="flex items-center gap-2">
-//                       <button
-//                         onClick={() => removeFromCart(item.name)}
-//                         className="p-1 rounded hover:bg-muted transition-colors"
-//                       >
-//                         {item.quantity === 1 ? (
-//                           <Trash2 className="h-4 w-4 text-destructive" />
-//                         ) : (
-//                           <Minus className="h-4 w-4 text-foreground" />
-//                         )}
+//                       <button onClick={() => removeFromCart(item.name)} className="p-1 rounded hover:bg-muted transition-colors">
+//                         {item.quantity === 1 ? <Trash2 className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4" />}
 //                       </button>
 //                       <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
-//                       <button
-//                         onClick={() => addToCart({ name: item.name, price: item.price })}
-//                         className="p-1 rounded hover:bg-muted transition-colors"
-//                       >
-//                         <Plus className="h-4 w-4 text-foreground" />
+//                       <button onClick={() => addToCart({ name: item.name, price: item.price })} className="p-1 rounded hover:bg-muted transition-colors">
+//                         <Plus className="h-4 w-4" />
 //                       </button>
 //                     </div>
-//                     <p className="text-sm font-bold text-foreground w-16 text-right">
-//                       ₹{item.price * item.quantity}
-//                     </p>
 //                   </div>
 //                 ))}
 //               </div>
 
-//               {/* Delivery Address Form */}
 //               <div className="space-y-4 pt-4 border-t border-border">
 //                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
 //                   <MapPin className="h-4 w-4" /> Delivery Details
 //                 </h3>
+
+//                 {/* VISUAL MAP PREVIEW - This will show the map once coordinates are detected */}
+//                 {addressForm.coords && (
+//                   <div className="w-full h-48 rounded-xl overflow-hidden border-2 border-primary/20 shadow-sm transition-all animate-in fade-in zoom-in duration-300">
+//                     <iframe
+//                       title="delivery-map"
+//                       width="100%"
+//                       height="100%"
+//                       style={{ border: 0 }}
+//                       loading="lazy"
+//                       src={`https://www.google.com/maps?q=${addressForm.coords.lat},${addressForm.coords.lng}&z=15&output=embed`}
+//                     ></iframe>
+//                   </div>
+//                 )}
                 
 //                 <div className="space-y-3">
-//                   <div>
-//                     <label className="text-xs font-medium text-foreground mb-1 block">Full Name</label>
-//                     <div className="relative">
-//                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//                       <input
-//                         type="text"
-//                         name="name"
-//                         value={addressForm.name}
-//                         onChange={handleInputChange}
-//                         placeholder="Enter your name"
-//                         className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none"
-//                         required
-//                       />
-//                     </div>
+//                   <div className="relative">
+//                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+//                     <input name="name" value={addressForm.name} onChange={handleInputChange} placeholder="Full Name" className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" />
 //                   </div>
 
-//                   <div>
-//                     <label className="text-xs font-medium text-foreground mb-1 block">Phone Number</label>
-//                     <div className="relative">
-//                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//                       <input
-//                         type="tel"
-//                         name="phone"
-//                         value={addressForm.phone}
-//                         onChange={handleInputChange}
-//                         placeholder="WhatsApp number"
-//                         className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none"
-//                         required
-//                       />
-//                     </div>
+//                   <div className="relative">
+//                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+//                     <input name="phone" value={addressForm.phone} onChange={handleInputChange} placeholder="WhatsApp Number" className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" />
 //                   </div>
 
 //                   <div>
 //                     <div className="flex justify-between items-center mb-1">
-//                       <label className="text-xs font-medium text-foreground block">Complete Address</label>
-//                       <button 
-//                         type="button"
-//                         onClick={handleGetLocation}
-//                         disabled={isLocating}
-//                         className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded"
-//                       >
-//                         {isLocating ? (
-//                           <Loader2 className="h-3 w-3 animate-spin" />
-//                         ) : (
-//                           <Target className="h-3 w-3" />
-//                         )}
+//                       <label className="text-xs font-medium">Delivery Address</label>
+//                       <button type="button" onClick={handleGetLocation} disabled={isLocating} className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded">
+//                         {isLocating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Target className="h-3 w-3" />}
 //                         {isLocating ? "Locating..." : "Detect Location"}
 //                       </button>
 //                     </div>
-//                     <textarea
-//                       name="address"
-//                       value={addressForm.address}
-//                       onChange={handleInputChange}
-//                       placeholder="House No, Street, Landmark, Area..."
-//                       rows={3}
-//                       className="w-full px-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none resize-none"
-//                       required
-//                     />
+//                     <textarea name="address" value={addressForm.address} onChange={handleInputChange} placeholder="House No, Area, Landmark..." rows={3} className="w-full px-4 py-2 text-sm rounded-md border bg-background focus:ring-2 focus:ring-primary outline-none resize-none" />
 //                   </div>
 //                 </div>
 //               </div>
 //             </div>
 
-//             <div className="border-t border-border pt-4 space-y-3 bg-background">
+//             <div className="border-t border-border pt-4 space-y-3">
 //               <div className="flex justify-between items-center text-lg font-bold">
-//                 <span className="text-foreground">Total</span>
+//                 <span>Total</span>
 //                 <span className="text-primary">₹{totalPrice}</span>
 //               </div>
-//               <p className="text-[10px] text-center text-muted-foreground">
-//                 Pay on Delivery available for all orders.
-//               </p>
 //               <button
 //                 onClick={handleOrder}
 //                 disabled={!isFormValid || isLocating}
-//                 className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
-//                   isFormValid && !isLocating
-//                   ? "gradient-green text-primary-foreground hover:opacity-90" 
-//                   : "bg-muted text-muted-foreground cursor-not-allowed"
-//                 }`}
+//                 className={`w-full py-3 rounded-lg font-semibold transition-all ${isFormValid && !isLocating ? "gradient-green text-primary-foreground hover:opacity-90" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
 //               >
 //                 Order on WhatsApp
 //               </button>
@@ -256,21 +196,20 @@
 
 
 
+
 // import { useState } from "react";
 // import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 // import { ShoppingCart, Trash2, Plus, Minus, MapPin, User, Phone, Target, Loader2 } from "lucide-react";
 // import { useCart } from "@/context/CartContext";
 
 // const CartSheet = () => {
-//   // Accessing context functions
 //   const { cart, totalItems, totalPrice, sendToWhatsApp, removeFromCart, addToCart } = useCart();
   
-//   // State for delivery details including coordinates for the map link
 //   const [addressForm, setAddressForm] = useState({
 //     name: "",
 //     phone: "",
 //     address: "",
-//     coords: null as { lat: number; lng: number } | null // Added to store raw GPS data
+//     coords: null as { lat: number; lng: number } | null 
 //   });
 
 //   const [isLocating, setIsLocating] = useState(false);
@@ -280,7 +219,6 @@
 //     setAddressForm(prev => ({ ...prev, [name]: value }));
 //   };
 
-//   // Function to handle Geolocation and capture coordinates for Maps
 //   const handleGetLocation = () => {
 //     if (!navigator.geolocation) {
 //       alert("Geolocation is not supported by your browser");
@@ -293,14 +231,13 @@
 //       async (position) => {
 //         const { latitude, longitude } = position.coords;
         
-//         // Step 1: Immediately save the raw coordinates for the WhatsApp map link
+//         // Store coordinates for the visual map and WhatsApp link
 //         setAddressForm(prev => ({
 //           ...prev,
 //           coords: { lat: latitude, lng: longitude }
 //         }));
 
 //         try {
-//           // Step 2: Fetch the readable address for the UI
 //           const response = await fetch(
 //             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
 //           );
@@ -323,11 +260,7 @@
 //       },
 //       (error) => {
 //         setIsLocating(false);
-//         if (error.code === 1) {
-//           alert("Location permission denied. Please allow location access.");
-//         } else {
-//           alert("Unable to retrieve location. Please type your address manually.");
-//         }
+//         alert("Unable to retrieve location. Please type your address manually.");
 //       },
 //       { enableHighAccuracy: true, timeout: 5000 }
 //     );
@@ -338,8 +271,6 @@
 //       alert("Please fill in all delivery details before ordering.");
 //       return;
 //     }
-
-//     // Pass the entire addressForm (including coords) to the context
 //     sendToWhatsApp(addressForm);
 //   };
 
@@ -350,10 +281,7 @@
 //   return (
 //     <Sheet>
 //       <SheetTrigger asChild>
-//         <button
-//           className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
-//           aria-label="Cart"
-//         >
+//         <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors">
 //           <ShoppingCart className="h-5 w-5 text-primary" />
 //           {totalItems > 0 && (
 //             <span className="absolute -top-1 -right-1 gradient-green text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
@@ -377,127 +305,105 @@
 //         ) : (
 //           <>
 //             <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
-//               {/* Cart Items List */}
 //               <div className="space-y-3">
 //                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Items</h3>
 //                 {cart.map((item) => (
-//                   <div
-//                     key={item.name}
-//                     className="flex items-center gap-3 bg-secondary rounded-lg p-3"
-//                   >
+//                   <div key={item.name} className="flex items-center gap-3 bg-secondary rounded-lg p-3">
 //                     <div className="flex-1 min-w-0">
 //                       <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
 //                       <p className="text-sm text-primary font-semibold">₹{item.price} each</p>
 //                     </div>
 //                     <div className="flex items-center gap-2">
-//                       <button
-//                         onClick={() => removeFromCart(item.name)}
-//                         className="p-1 rounded hover:bg-muted transition-colors"
-//                       >
-//                         {item.quantity === 1 ? (
-//                           <Trash2 className="h-4 w-4 text-destructive" />
-//                         ) : (
-//                           <Minus className="h-4 w-4 text-foreground" />
-//                         )}
+//                       <button onClick={() => removeFromCart(item.name)} className="p-1 rounded hover:bg-muted transition-colors">
+//                         {item.quantity === 1 ? <Trash2 className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4" />}
 //                       </button>
 //                       <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
-//                       <button
-//                         onClick={() => addToCart({ name: item.name, price: item.price })}
-//                         className="p-1 rounded hover:bg-muted transition-colors"
-//                       >
-//                         <Plus className="h-4 w-4 text-foreground" />
+//                       <button onClick={() => addToCart({ name: item.name, price: item.price })} className="p-1 rounded hover:bg-muted transition-colors">
+//                         <Plus className="h-4 w-4" />
 //                       </button>
 //                     </div>
-//                     <p className="text-sm font-bold text-foreground w-16 text-right">
-//                       ₹{item.price * item.quantity}
-//                     </p>
 //                   </div>
 //                 ))}
 //               </div>
 
-//               {/* Delivery Address Form */}
 //               <div className="space-y-4 pt-4 border-t border-border">
 //                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
 //                   <MapPin className="h-4 w-4" /> Delivery Details
 //                 </h3>
+
+//                 {/* VISUAL MAP PREVIEW */}
+//                 {addressForm.coords && (
+//                   <div className="w-full h-48 rounded-xl overflow-hidden border-2 border-primary/20 shadow-sm transition-all animate-in fade-in zoom-in duration-300">
+//                     <iframe
+//                       title="delivery-map"
+//                       width="100%"
+//                       height="100%"
+//                       style={{ border: 0 }}
+//                       loading="lazy"
+//                       src={`https://maps.google.com/maps?q=${addressForm.coords.lat},${addressForm.coords.lng}&z=15&output=embed`}
+//                     ></iframe>
+//                   </div>
+//                 )}
                 
 //                 <div className="space-y-3">
-//                   <div>
-//                     <label className="text-xs font-medium text-foreground mb-1 block">Full Name</label>
-//                     <div className="relative">
-//                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//                       <input
-//                         type="text"
-//                         name="name"
-//                         value={addressForm.name}
-//                         onChange={handleInputChange}
-//                         placeholder="Enter your name"
-//                         className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none"
-//                         required
-//                       />
-//                     </div>
+//                   <div className="relative">
+//                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+//                     <input 
+//                       name="name" 
+//                       value={addressForm.name} 
+//                       onChange={handleInputChange} 
+//                       placeholder="Full Name" 
+//                       className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" 
+//                     />
 //                   </div>
 
-//                   <div>
-//                     <label className="text-xs font-medium text-foreground mb-1 block">Phone Number</label>
-//                     <div className="relative">
-//                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-//                       <input
-//                         type="tel"
-//                         name="phone"
-//                         value={addressForm.phone}
-//                         onChange={handleInputChange}
-//                         placeholder="WhatsApp number"
-//                         className="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none"
-//                         required
-//                       />
-//                     </div>
+//                   <div className="relative">
+//                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+//                     <input 
+//                       name="phone" 
+//                       value={addressForm.phone} 
+//                       onChange={handleInputChange} 
+//                       placeholder="WhatsApp Number" 
+//                       className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" 
+//                     />
 //                   </div>
 
 //                   <div>
 //                     <div className="flex justify-between items-center mb-1">
-//                       <label className="text-xs font-medium text-foreground block">Complete Address</label>
+//                       <label className="text-xs font-medium">Delivery Address</label>
 //                       <button 
-//                         type="button"
-//                         onClick={handleGetLocation}
-//                         disabled={isLocating}
+//                         type="button" 
+//                         onClick={handleGetLocation} 
+//                         disabled={isLocating} 
 //                         className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded"
 //                       >
-//                         {isLocating ? (
-//                           <Loader2 className="h-3 w-3 animate-spin" />
-//                         ) : (
-//                           <Target className="h-3 w-3" />
-//                         )}
-//                         {isLocating ? "Locating..." : "Detect Location"}
+//                         {isLocating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Target className="h-3 w-3" />}
+//                         {isLocating ? "Locating..." : "Add Current Location"}
 //                       </button>
 //                     </div>
-//                     <textarea
-//                       name="address"
-//                       value={addressForm.address}
-//                       onChange={handleInputChange}
-//                       placeholder="House No, Street, Landmark, Area..."
-//                       rows={3}
-//                       className="w-full px-4 py-2 text-sm rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none resize-none"
-//                       required
+//                     <textarea 
+//                       name="address" 
+//                       value={addressForm.address} 
+//                       onChange={handleInputChange} 
+//                       placeholder="House No, Area, Landmark..." 
+//                       rows={3} 
+//                       className="w-full px-4 py-2 text-sm rounded-md border bg-background focus:ring-2 focus:ring-primary outline-none resize-none" 
 //                     />
 //                   </div>
 //                 </div>
 //               </div>
 //             </div>
 
-//             <div className="border-t border-border pt-4 space-y-3 bg-background">
+//             <div className="border-t border-border pt-4 space-y-3">
 //               <div className="flex justify-between items-center text-lg font-bold">
-//                 <span className="text-foreground">Total</span>
+//                 <span>Total</span>
 //                 <span className="text-primary">₹{totalPrice}</span>
 //               </div>
-//               <p className="text-[10px] text-center text-muted-foreground">
-//                 Pay on Delivery available for all orders.
-//               </p>
 //               <button
 //                 onClick={handleOrder}
 //                 disabled={!isFormValid || isLocating}
-//                 className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
-//                   isFormValid && !isLocating
+//                 className={`w-full py-3 rounded-lg font-semibold transition-all ${
+//                   isFormValid && !isLocating 
 //                   ? "gradient-green text-primary-foreground hover:opacity-90" 
 //                   : "bg-muted text-muted-foreground cursor-not-allowed"
 //                 }`}
@@ -551,28 +457,28 @@ const CartSheet = () => {
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        // Store coordinates for the visual map and WhatsApp link
-        setAddressForm(prev => ({
-          ...prev,
-          coords: { lat: latitude, lng: longitude }
-        }));
-
         try {
+          // Fetch the readable address from Nominatim (OpenStreetMap)
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await response.json();
           
           const fullAddress = data.display_name || `Lat: ${latitude}, Lon: ${longitude}`;
+          
+          // CRITICAL UPDATE: Set both address and coords at once to ensure automatic UI update
           setAddressForm(prev => ({
             ...prev,
-            address: fullAddress
+            address: fullAddress,
+            coords: { lat: latitude, lng: longitude }
           }));
         } catch (error) {
           console.error("Error fetching address:", error);
+          // Fallback if API fails: still set coords so the map/link works
           setAddressForm(prev => ({
             ...prev,
-            address: `Coordinates: ${latitude}, ${longitude}`
+            address: `Coordinates: ${latitude}, ${longitude}`,
+            coords: { lat: latitude, lng: longitude }
           }));
         } finally {
           setIsLocating(false);
@@ -582,7 +488,7 @@ const CartSheet = () => {
         setIsLocating(false);
         alert("Unable to retrieve location. Please type your address manually.");
       },
-      { enableHighAccuracy: true, timeout: 5000 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
@@ -651,7 +557,7 @@ const CartSheet = () => {
                   <MapPin className="h-4 w-4" /> Delivery Details
                 </h3>
 
-                {/* VISUAL MAP PREVIEW - This will show the map once coordinates are detected */}
+                {/* VISUAL MAP PREVIEW */}
                 {addressForm.coords && (
                   <div className="w-full h-48 rounded-xl overflow-hidden border-2 border-primary/20 shadow-sm transition-all animate-in fade-in zoom-in duration-300">
                     <iframe
@@ -660,7 +566,7 @@ const CartSheet = () => {
                       height="100%"
                       style={{ border: 0 }}
                       loading="lazy"
-                      src={`https://www.google.com/maps?q=${addressForm.coords.lat},${addressForm.coords.lng}&z=15&output=embed`}
+                      src={`https://maps.google.com/maps?q=${addressForm.coords.lat},${addressForm.coords.lng}&z=15&output=embed`}
                     ></iframe>
                   </div>
                 )}
@@ -668,23 +574,47 @@ const CartSheet = () => {
                 <div className="space-y-3">
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input name="name" value={addressForm.name} onChange={handleInputChange} placeholder="Full Name" className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" />
+                    <input 
+                      name="name" 
+                      value={addressForm.name} 
+                      onChange={handleInputChange} 
+                      placeholder="Full Name" 
+                      className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" 
+                    />
                   </div>
 
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input name="phone" value={addressForm.phone} onChange={handleInputChange} placeholder="WhatsApp Number" className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" />
+                    <input 
+                      name="phone" 
+                      value={addressForm.phone} 
+                      onChange={handleInputChange} 
+                      placeholder="WhatsApp Number" 
+                      className="w-full pl-10 pr-4 py-2 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-primary" 
+                    />
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-xs font-medium">Delivery Address</label>
-                      <button type="button" onClick={handleGetLocation} disabled={isLocating} className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded">
+                      <button 
+                        type="button" 
+                        onClick={handleGetLocation} 
+                        disabled={isLocating} 
+                        className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded transition-transform active:scale-95"
+                      >
                         {isLocating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Target className="h-3 w-3" />}
-                        {isLocating ? "Locating..." : "Detect Location"}
+                        {isLocating ? "Locating..." : "Add Current Location"}
                       </button>
                     </div>
-                    <textarea name="address" value={addressForm.address} onChange={handleInputChange} placeholder="House No, Area, Landmark..." rows={3} className="w-full px-4 py-2 text-sm rounded-md border bg-background focus:ring-2 focus:ring-primary outline-none resize-none" />
+                    <textarea 
+                      name="address" 
+                      value={addressForm.address} 
+                      onChange={handleInputChange} 
+                      placeholder="House No, Area, Landmark..." 
+                      rows={3} 
+                      className="w-full px-4 py-2 text-sm rounded-md border bg-background focus:ring-2 focus:ring-primary outline-none resize-none" 
+                    />
                   </div>
                 </div>
               </div>
@@ -698,9 +628,13 @@ const CartSheet = () => {
               <button
                 onClick={handleOrder}
                 disabled={!isFormValid || isLocating}
-                className={`w-full py-3 rounded-lg font-semibold transition-all ${isFormValid && !isLocating ? "gradient-green text-primary-foreground hover:opacity-90" : "bg-muted text-muted-foreground cursor-not-allowed"}`}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                  isFormValid && !isLocating 
+                  ? "gradient-green text-primary-foreground hover:opacity-90 shadow-md" 
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+                }`}
               >
-                Order on WhatsApp
+                {isLocating ? "Please wait..." : "Order on WhatsApp"}
               </button>
             </div>
           </>
