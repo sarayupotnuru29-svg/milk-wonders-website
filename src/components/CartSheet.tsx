@@ -1,6 +1,6 @@
 // import { useState } from "react";
 // import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-// import { ShoppingCart, Trash2, Plus, Minus, MapPin, User, Phone } from "lucide-react";
+// import { ShoppingCart, Trash2, Plus, Minus, MapPin, User, Phone, Target, Loader2 } from "lucide-react";
 // import { useCart } from "@/context/CartContext";
 
 // const CartSheet = () => {
@@ -13,21 +13,76 @@
 //     address: ""
 //   });
 
+//   const [isLocating, setIsLocating] = useState(false);
+
 //   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 //     const { name, value } = e.target;
 //     setAddressForm(prev => ({ ...prev, [name]: value }));
 //   };
 
+//   // Function to handle Geolocation
+//   const handleGetLocation = () => {
+//     if (!navigator.geolocation) {
+//       alert("Geolocation is not supported by your browser");
+//       return;
+//     }
+
+//     setIsLocating(true);
+
+//     navigator.geolocation.getCurrentPosition(
+//       async (position) => {
+//         const { latitude, longitude } = position.coords;
+        
+//         try {
+//           // Fetching address from coordinates using OpenStreetMap's Nominatim API
+//           const response = await fetch(
+//             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+//           );
+//           const data = await response.json();
+          
+//           // Update the state with the fetched address
+//           const fullAddress = data.display_name || `Lat: ${latitude}, Lon: ${longitude}`;
+//           setAddressForm(prev => ({
+//             ...prev,
+//             address: fullAddress
+//           }));
+//         } catch (error) {
+//           console.error("Error fetching address:", error);
+//           setAddressForm(prev => ({
+//             ...prev,
+//             address: `Coordinates: ${latitude}, ${longitude}`
+//           }));
+//         } finally {
+//           setIsLocating(false);
+//         }
+//       },
+//       (error) => {
+//         setIsLocating(false);
+//         if (error.code === 1) {
+//           alert("Location permission denied. Please allow location access in your browser settings.");
+//         } else {
+//           alert("Unable to retrieve location. Please type your address manually.");
+//         }
+//       },
+//       { enableHighAccuracy: true, timeout: 5000 }
+//     );
+//   };
+
 //   const handleOrder = () => {
-//     if (!addressForm.name || !addressForm.phone || !addressForm.address) {
+//     if (!addressForm.name.trim() || !addressForm.phone.trim() || !addressForm.address.trim()) {
 //       alert("Please fill in all delivery details before ordering.");
 //       return;
 //     }
-//     // Passing the form data to the WhatsApp function
+
+//     // Logic Fix: Ensure we are passing the current state object 
+//     // to the sendToWhatsApp function defined in your CartContext
 //     sendToWhatsApp(addressForm);
 //   };
 
-//   const isFormValid = addressForm.name && addressForm.phone && addressForm.address;
+//   // Improved validation logic
+//   const isFormValid = addressForm.name.trim().length > 0 && 
+//                       addressForm.phone.trim().length > 0 && 
+//                       addressForm.address.trim().length > 0;
 
 //   return (
 //     <Sheet>
@@ -58,7 +113,6 @@
 //           </div>
 //         ) : (
 //           <>
-//             {/* Scrollable Area: Cart Items + Address Form */}
 //             <div className="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
 //               {/* Cart Items List */}
 //               <div className="space-y-3">
@@ -138,7 +192,22 @@
 //                   </div>
 
 //                   <div>
-//                     <label className="text-xs font-medium text-foreground mb-1 block">Complete Address</label>
+//                     <div className="flex justify-between items-center mb-1">
+//                       <label className="text-xs font-medium text-foreground block">Complete Address</label>
+//                       <button 
+//                         type="button"
+//                         onClick={handleGetLocation}
+//                         disabled={isLocating}
+//                         className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded"
+//                       >
+//                         {isLocating ? (
+//                           <Loader2 className="h-3 w-3 animate-spin" />
+//                         ) : (
+//                           <Target className="h-3 w-3" />
+//                         )}
+//                         {isLocating ? "Locating..." : "Detect Location"}
+//                       </button>
+//                     </div>
 //                     <textarea
 //                       name="address"
 //                       value={addressForm.address}
@@ -153,7 +222,6 @@
 //               </div>
 //             </div>
 
-//             {/* Footer: Total and Order Button */}
 //             <div className="border-t border-border pt-4 space-y-3 bg-background">
 //               <div className="flex justify-between items-center text-lg font-bold">
 //                 <span className="text-foreground">Total</span>
@@ -164,9 +232,9 @@
 //               </p>
 //               <button
 //                 onClick={handleOrder}
-//                 disabled={!isFormValid}
+//                 disabled={!isFormValid || isLocating}
 //                 className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
-//                   isFormValid 
+//                   isFormValid && !isLocating
 //                   ? "gradient-green text-primary-foreground hover:opacity-90" 
 //                   : "bg-muted text-muted-foreground cursor-not-allowed"
 //                 }`}
@@ -185,15 +253,13 @@
 
 
 
-
-
-
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingCart, Trash2, Plus, Minus, MapPin, User, Phone, Target, Loader2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 const CartSheet = () => {
+  // Accessing context functions
   const { cart, totalItems, totalPrice, sendToWhatsApp, removeFromCart, addToCart } = useCart();
   
   // State for delivery details
@@ -230,9 +296,11 @@ const CartSheet = () => {
           );
           const data = await response.json();
           
+          // Update the state with the fetched address
+          const fullAddress = data.display_name || `Lat: ${latitude}, Lon: ${longitude}`;
           setAddressForm(prev => ({
             ...prev,
-            address: data.display_name || `Lat: ${latitude}, Lon: ${longitude}`
+            address: fullAddress
           }));
         } catch (error) {
           console.error("Error fetching address:", error);
@@ -257,14 +325,21 @@ const CartSheet = () => {
   };
 
   const handleOrder = () => {
-    if (!addressForm.name || !addressForm.phone || !addressForm.address) {
+    // Validation check
+    if (!addressForm.name.trim() || !addressForm.phone.trim() || !addressForm.address.trim()) {
       alert("Please fill in all delivery details before ordering.");
       return;
     }
+
+    // UPDATED LOGIC: Pass the addressForm object to the context function
+    // This ensures Name, Phone, and Address are sent to WhatsApp
     sendToWhatsApp(addressForm);
   };
 
-  const isFormValid = addressForm.name && addressForm.phone && addressForm.address;
+  // Form validation for the button state
+  const isFormValid = addressForm.name.trim().length > 0 && 
+                      addressForm.phone.trim().length > 0 && 
+                      addressForm.address.trim().length > 0;
 
   return (
     <Sheet>
