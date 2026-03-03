@@ -1,6 +1,8 @@
 // import { Link } from "react-router-dom";
-// import { Phone, Mail, MapPin } from "lucide-react";
+// import { Phone, Mail, MapPin, Heart } from "lucide-react";
 // import logo from "@/assets/logo.jpeg";
+// // Local import for the StaffArc logo
+// import staffArcLogo from "@/assets/staffarclogo.jpg";
 
 // const Footer = () => (
 //   <footer className="gradient-green text-primary-foreground">
@@ -36,7 +38,7 @@
 //           </ul>
 //         </div>
 
-//         {/* Services */}
+//         {/* Products */}
 //         <div>
 //           <h4 className="font-heading font-semibold text-lg mb-4">Our Products</h4>
 //           <ul className="space-y-2 text-sm">
@@ -63,8 +65,28 @@
 //         </div>
 //       </div>
 
-//       <div className="border-t border-primary-foreground/20 mt-10 pt-6 text-center text-sm text-primary-foreground/60">
-//         © {new Date().getFullYear()} MilkWonders. All rights reserved.
+//       <div className="border-t border-primary-foreground/20 mt-10 pt-6 flex flex-col items-center gap-4">
+//         <div className="text-center text-sm text-primary-foreground/60">
+//           © {new Date().getFullYear()} MilkWonders. All rights reserved.
+//         </div>
+
+//         {/* Credits Section */}
+//         <div className="flex justify-center items-center gap-1 text-sm text-primary-foreground/80">
+//           Made with <Heart className="inline h-4 w-4 text-red-500 mx-1 fill-current" /> by
+//           <a
+//             href="https://staffarc.in"
+//             target="_blank"
+//             rel="noopener noreferrer"
+//             className="flex items-center gap-1 text-white hover:underline ml-1 font-medium"
+//           >
+//             <img
+//               src={staffArcLogo}
+//               alt="StaffArc logo"
+//               className="h-5 w-5 object-contain rounded-sm"
+//             />
+//             StaffArc
+//           </a>
+//         </div>
 //       </div>
 //     </div>
 //   </footer>
@@ -78,7 +100,7 @@
 
 
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Heart } from "lucide-react";
+import { Phone, Mail, MapPin, Heart, Banknote } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
 // Local import for the StaffArc logo
 import staffArcLogo from "@/assets/staffarclogo.jpg";
@@ -133,9 +155,18 @@ const Footer = () => (
 
         {/* Contact & Delivery */}
         <div>
-          <h4 className="font-heading font-semibold text-lg mb-4">Delivery Timing</h4>
-          <p className="text-sm text-primary-foreground/80 mb-1">🌅 Morning: 6AM – 8AM</p>
-          <p className="text-sm text-primary-foreground/80 mb-4">🌆 Evening: 5PM – 9PM</p>
+          <h4 className="font-heading font-semibold text-lg mb-4">Delivery & Payment</h4>
+          <div className="mb-4">
+            <p className="text-sm text-primary-foreground/80 mb-1">🌅 Morning: 6AM – 8AM</p>
+            <p className="text-sm text-primary-foreground/80">🌆 Evening: 5PM – 9PM</p>
+          </div>
+          
+          {/* Pay on Delivery Highlight */}
+          <div className="mb-4 flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full border border-white/20">
+            <Banknote className="h-4 w-4 text-yellow-300" />
+            <span className="text-sm font-medium">Pay on Delivery Available</span>
+          </div>
+
           <div className="space-y-2 text-sm text-primary-foreground/80">
             <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> 7396304599</p>
             <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> milkwonders36@gmail.com</p>
