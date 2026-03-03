@@ -6,6 +6,7 @@
 //   quantity: number;
 // }
 
+// // 1. Updated Interface to accept the form data object
 // interface CartContextType {
 //   cart: CartItem[];
 //   addToCart: (item: Omit<CartItem, "quantity">) => void;
@@ -13,7 +14,8 @@
 //   clearCart: () => void;
 //   totalItems: number;
 //   totalPrice: number;
-//   sendToWhatsApp: () => void;
+//   // Updated signature to accept userData
+//   sendToWhatsApp: (userData: { name: string; phone: string; address: string }) => void;
 // }
 
 // const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -56,12 +58,24 @@
 //   const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
 //   const totalPrice = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-//   const sendToWhatsApp = () => {
+//   // 2. Updated Logic to include Customer and Address details
+//   const sendToWhatsApp = (userData: { name: string; phone: string; address: string }) => {
 //     if (cart.length === 0) return;
+
 //     const items = cart
-//       .map((i) => `${i.quantity}x ${i.name} – ₹${i.price * i.quantity}`)
+//       .map((i) => `• ${i.name} (x${i.quantity}) – ₹${i.price * i.quantity}`)
 //       .join("\n");
-//     const msg = `Hello MilkWonders,\nI would like to order:\n${items}\n\nTotal: ₹${totalPrice}`;
+
+//     // Creating a clean, readable WhatsApp message
+//     const msg = `*NEW ORDER - MILK WONDERS*\n\n` +
+//                 `*Customer Details:*\n` +
+//                 `Name: ${userData.name}\n` +
+//                 `Phone: ${userData.phone}\n` +
+//                 `Address: ${userData.address}\n\n` + // <--- Address included here
+//                 `*Items Ordered:*\n${items}\n\n` +
+//                 `*Total: ₹${totalPrice}*\n\n` +
+//                 `Please confirm my order.`;
+
 //     const url = `https://wa.me/917396304599?text=${encodeURIComponent(msg)}`;
 //     window.open(url, "_blank");
 //   };
@@ -78,6 +92,7 @@
 
 
 
+
 import { createContext, useContext, useState, ReactNode } from "react";
 
 export interface CartItem {
@@ -86,7 +101,6 @@ export interface CartItem {
   quantity: number;
 }
 
-// 1. Updated Interface to accept the form data object
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "quantity">) => void;
@@ -94,8 +108,12 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
-  // Updated signature to accept userData
-  sendToWhatsApp: (userData: { name: string; phone: string; address: string }) => void;
+  sendToWhatsApp: (userData: { 
+    name: string; 
+    phone: string; 
+    address: string;
+    coords?: { lat: number; lng: number } | null; 
+  }) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -138,26 +156,42 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  // 2. Updated Logic to include Customer and Address details
-  const sendToWhatsApp = (userData: { name: string; phone: string; address: string }) => {
+  const sendToWhatsApp = (userData: { 
+    name: string; 
+    phone: string; 
+    address: string;
+    coords?: { lat: number; lng: number } | null;
+  }) => {
     if (cart.length === 0) return;
 
     const items = cart
       .map((i) => `• ${i.name} (x${i.quantity}) – ₹${i.price * i.quantity}`)
       .join("\n");
 
-    // Creating a clean, readable WhatsApp message
+    /** * FIXED GOOGLE MAPS LINK:
+     * Using the standard 'https://www.google.com/maps?q=lat,lng' format 
+     * which is the most reliable for WhatsApp previews.
+     */
+    const mapLink = userData.coords 
+      ? `\n📍 *Live Location:* https://www.google.com/maps?q=${userData.coords.lat},${userData.coords.lng}`
+      : "";
+
     const msg = `*NEW ORDER - MILK WONDERS*\n\n` +
                 `*Customer Details:*\n` +
                 `Name: ${userData.name}\n` +
                 `Phone: ${userData.phone}\n` +
-                `Address: ${userData.address}\n\n` + // <--- Address included here
+                `Address: ${userData.address}${mapLink}\n\n` +
                 `*Items Ordered:*\n${items}\n\n` +
                 `*Total: ₹${totalPrice}*\n\n` +
                 `Please confirm my order.`;
 
     const url = `https://wa.me/917396304599?text=${encodeURIComponent(msg)}`;
+    
+    // Open WhatsApp
     window.open(url, "_blank");
+    
+    // Optional: Clear the cart after sending the order
+    clearCart();
   };
 
   return (
